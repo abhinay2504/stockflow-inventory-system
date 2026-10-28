@@ -1,0 +1,11 @@
+STOCKFLOW MVP - RUN LOCALLY (WINDOWS)
+
+1. Install Python 3.10 or newer.
+2. Extract the project ZIP.
+3. Double-click run_local.bat.
+4. Open http://127.0.0.1:5000.
+5. Sign up and add a product.
+
+Do not deploy until production secrets,
+HTTPS cookie settings, and a persistent
+production database are configured.
