@@ -5,7 +5,7 @@ from functools import wraps
 from decimal import Decimal,InvalidOperation
 from flask import Flask,g,request,session,redirect,url_for,render_template,flash,abort
 from werkzeug.security import generate_password_hash,check_password_hash
-ROOT=os.path.dirname(os.path.abspath(__file__)); DB_PATH=os.environ.get('STOCKFLOW_DB',os.path.join(ROOT,'stockflow.db'))
+ROOT=os.path.dirname(os.path.abspath(__file__)); DEFAULT_DB_DIR='/tmp' if os.environ.get('VERCEL') else ROOT; DB_PATH=os.environ.get('STOCKFLOW_DB',os.path.join(DEFAULT_DB_DIR,'stockflow.db'))
 
 app = Flask(__name__)
 
