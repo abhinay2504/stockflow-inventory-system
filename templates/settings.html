@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}Settings{% endblock %}
+{% block crumb %}Settings{% endblock %}
+{% block content %}
+<div class="page-head"><div><p class="eyebrow">PREFERENCES</p><h1>Settings</h1><p class="muted">Configure your workspace defaults.</p></div></div>
+<section class="panel form-panel"><h2>Workspace settings</h2><p class="muted">These preferences apply to your organization.</p>
+<form method="post" id="settingsForm"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><div class="settings-row">
+<label>Organization name<input id="settingsOrganizationName" name="organization_name" required minlength="2" maxlength="80" aria-describedby="settingsOrganizationNameMessage" value="{{ request.form.get('organization_name',org.name) }}"><small id="settingsOrganizationNameMessage" class="field-message" aria-live="polite">Use 2–80 characters and include at least one letter or number.</small></label>
+<label>Default low-stock threshold<input name="default_threshold" type="number" min="0" max="2000000000" step="1" required value="{{ request.form.get('default_threshold',org.default_threshold) }}"><small>Products with no custom threshold use this value.</small></label>
+</div><div class="form-actions"><button class="btn primary">Save settings</button></div></form></section>
+<section class="panel form-panel mt"><h2>Account &amp; security</h2><div class="settings-row"><div><b>Signed in as</b><p class="muted">{{ g.user.email }}</p></div><div><b>Password storage</b><p class="muted">Passwords are stored as salted scrypt hashes.</p></div></div><p class="security-note">Password reset and staff invitations are outside this MVP.</p></section>
+<script>
+(function(){const form=document.getElementById('settingsForm'),org=document.getElementById('settingsOrganizationName'),msg=document.getElementById('settingsOrganizationNameMessage');if(!form||!org||!msg)return;function check(){const v=org.value.trim().replace(/\s+/g,' '),ok=v.length>=2&&v.length<=80&&/[\p{L}\p{N}]/u.test(v)&&!/[\u0000-\u001F\u007F-\u009F]/u.test(v);org.setCustomValidity(ok?'':'Organization name must be 2–80 characters, include a letter or number, and contain no control characters.');msg.textContent=ok?'Organization name looks good.':'Use 2–80 characters, include a letter or number, and avoid control characters.';msg.className='field-message'+(ok?' matched':'');}org.addEventListener('input',check);org.addEventListener('blur',()=>{org.value=org.value.trim().replace(/\s+/g,' ');check();});form.addEventListener('submit',e=>{check();if(!form.checkValidity()){e.preventDefault();form.reportValidity();}});check();})();
+</script>
+{% endblock %}
