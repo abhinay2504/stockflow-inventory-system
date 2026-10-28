@@ -17,7 +17,7 @@ Python 3.10+ recommended.
 
 ```bash
 python -m venv .venv
-# Windows PowerShell: .venv\\Scripts\\Activate.ps1
+# Windows PowerShell: .venv\Scripts\Activate.ps1
 # macOS/Linux: source .venv/bin/activate
 pip install -r requirements.txt
 # Set SECRET_KEY before starting (PowerShell example below)
@@ -41,4 +41,3 @@ Browser tests require Playwright and Chromium; see `requirements-test.txt` and `
 ## MVP boundaries
 Password reset, email verification, staff/invites, roles, stock movement history, warehouses, orders, integrations, CSV import, external API, billing, and audit logs are out of scope.
 
-`prototype-preview.html` is an earlier UI-only visual reference and is not the application entry point. Use `python app.py` to run the server-backed application.
