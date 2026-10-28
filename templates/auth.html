@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Create account' if mode == 'signup' else 'Sign in' }}{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+  <section class="auth-brand">
+    <a class="brand" href="{{ url_for('login') }}"><span class="mark">S</span> StockFlow</a>
+    <div class="hero">
+      <p class="eyebrow">INVENTORY, SIMPLIFIED</p>
+      <h1>Inventory clarity.<br>From day one.</h1>
+      <p>A calmer, clearer way to know what you have, what you need, and what's running low.</p>
+      <ul>
+        <li><span class="hero-check">✓</span> One clear view of your catalog</li>
+        <li><span class="hero-check">✓</span> Catch low stock before you run out</li>
+        <li><span class="hero-check">✓</span> A private workspace for your business</li>
+      </ul>
+      <div class="hero-note">
+        <span class="hero-note-icon">↗</span>
+        <div><b>Less guesswork. More control.</b><small>Simple inventory tools for everyday work.</small></div>
+      </div>
+    </div>
+    <small>© 2026 StockFlow · Inventory made simpler</small>
+  </section>
+
+  <section class="auth-form-side">
+    <form class="auth-form" method="post" id="authForm" novalidate>
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <p class="eyebrow">{{ 'GET STARTED' if mode == 'signup' else 'YOUR WORKSPACE AWAITS' }}</p>
+      <h2>{{ 'Create your workspace' if mode == 'signup' else 'Welcome back' }}</h2>
+      <p class="muted">{{ 'Set up your account and start tracking stock with confidence.' if mode == 'signup' else 'Sign in to continue managing your inventory.' }}</p>
+
+      {% if mode == 'signup' %}
+      <label>Organization name
+        <input id="organizationName" name="organization_name" required minlength="2" maxlength="80" placeholder="e.g. My Test Store" autocomplete="organization" aria-describedby="organizationNameMessage" value="{{ request.form.get('organization_name', '') }}">
+        <small id="organizationNameMessage" class="field-message" aria-live="polite">Use 2–80 characters and include at least one letter or number.</small>
+      </label>
+      {% endif %}
+
+      <label>Email address
+        <input type="email" name="email" required maxlength="254" placeholder="you@company.com" autocomplete="email" value="{{ request.form.get('email', '') }}">
+      </label>
+
+      <label>Password
+        <div class="password-wrap">
+          <input id="password" type="password" name="password" required minlength="8" maxlength="128" placeholder="{{ 'Create a strong password' if mode == 'signup' else 'Enter your password' }}" autocomplete="{{ 'new-password' if mode == 'signup' else 'current-password' }}">
+          <button class="reveal" type="button" aria-label="Show password" data-reveal="password">Show</button>
+        </div>
+        {% if mode == 'signup' %}
+        <div class="password-rules" id="passwordRules">
+          <p class="rules-title">Your password must include:</p>
+          <span data-rule="length"><i>✓</i> 8–128 characters</span>
+          <span data-rule="upper"><i>✓</i> One capital letter (A–Z)</span>
+          <span data-rule="lower"><i>✓</i> One lowercase letter (a–z)</span>
+          <span data-rule="number"><i>✓</i> One number (0–9)</span>
+          <span data-rule="special"><i>✓</i> One special character (! @ # $ …)</span>
+        </div>
+        {% endif %}
+      </label>
+
+      {% if mode == 'signup' %}
+      <label>Confirm password
+        <div class="password-wrap">
+          <input id="confirmPassword" type="password" name="confirm_password" required minlength="8" maxlength="128" placeholder="Enter your password again" autocomplete="new-password">
+          <button class="reveal" type="button" aria-label="Show confirm password" data-reveal="confirmPassword">Show</button>
+        </div>
+        <small id="matchMessage" class="field-message" aria-live="polite">Please enter the same password again.</small>
+      </label>
+      {% endif %}
+
+      <button class="btn primary full auth-submit">{{ 'Create account' if mode == 'signup' else 'Sign in' }} <span>→</span></button>
+
+      <p class="switch">
+        {{ 'Already have an account?' if mode == 'signup' else 'New to StockFlow?' }}
+        <a href="{{ url_for('login' if mode == 'signup' else 'signup') }}">{{ 'Sign in' if mode == 'signup' else 'Create an account' }}</a>
+      </p>
+      <p class="security-note"><span>⌑</span> Passwords are securely hashed. Your organization has a private workspace.</p>
+    </form>
+  </section>
+</div>
+
+{% if mode == 'signup' %}
+<script>
+(function () {
+  const form = document.getElementById('authForm');
+  const pw = document.getElementById('password');
+  const confirm = document.getElementById('confirmPassword');
+  const org = document.getElementById('organizationName');
+  const tests = {
+    length: v => v.length >= 8 && v.length <= 128,
+    upper: v => /[A-Z]/.test(v),
+    lower: v => /[a-z]/.test(v),
+    number: v => /[0-9]/.test(v),
+    special: v => /[^A-Za-z0-9\s]/.test(v)
+  };
+  function refresh() {
+    const value = pw.value;
+    let passed = 0;
+    const orgName = org.value.trim().replace(/\s+/g, ' ');
+    const orgMsg = document.getElementById('organizationNameMessage');
+    const orgValid = orgName.length >= 2 && orgName.length <= 80 &&
+      /[\p{L}\p{N}]/u.test(orgName) && !/[\u0000-\u001F\u007F-\u009F]/u.test(orgName);
+    org.setCustomValidity(orgValid ? '' : 'Organization name must be 2–80 characters, include a letter or number, and contain no control characters.');
+    orgMsg.textContent = orgValid ? 'Organization name looks good.' : 'Use 2–80 characters, include a letter or number, and avoid control characters.';
+    orgMsg.className = 'field-message' + (orgValid ? ' matched' : '');
+    Object.keys(tests).forEach(key => {
+      const element = document.querySelector('[data-rule="' + key + '"]');
+      const valid = tests[key](value);
+      element.classList.toggle('met', valid);
+      if (valid) passed++;
+    });
+    pw.setCustomValidity(passed === 5 ? '' : 'Please meet all password requirements.');
+    const message = document.getElementById('matchMessage');
+    if (!confirm.value) {
+      message.textContent = 'Please enter the same password again.';
+      message.className = 'field-message';
+      confirm.setCustomValidity('');
+    } else if (confirm.value === pw.value) {
+      message.textContent = 'Passwords match.';
+      message.className = 'field-message matched';
+      confirm.setCustomValidity('');
+    } else {
+      message.textContent = 'Passwords do not match yet.';
+      message.className = 'field-message mismatch';
+      confirm.setCustomValidity('Passwords do not match.');
+    }
+  }
+  pw.addEventListener('input', refresh);
+  confirm.addEventListener('input', refresh);
+  org.addEventListener('input', refresh);
+  org.addEventListener('blur', () => { org.value = org.value.trim().replace(/\s+/g, ' '); refresh(); });
+  form.addEventListener('submit', function (event) {
+    refresh();
+    if (!form.checkValidity()) { event.preventDefault(); form.reportValidity(); }
+  });
+  document.querySelectorAll('[data-reveal]').forEach(button => {
+    button.addEventListener('click', () => {
+      const input = document.getElementById(button.dataset.reveal);
+      const show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      button.textContent = show ? 'Hide' : 'Show';
+      button.setAttribute('aria-label', (show ? 'Hide ' : 'Show ') + (input.id === 'password' ? 'password' : 'confirm password'));
+    });
+  });
+  refresh();
+})();
+</script>
+{% else %}
+<script>
+document.querySelectorAll('[data-reveal]').forEach(button => {
+  button.addEventListener('click', () => {
+    const input = document.getElementById(button.dataset.reveal);
+    const show = input.type === 'password';
+    input.type = show ? 'text' : 'password';
+    button.textContent = show ? 'Hide' : 'Show';
+    button.setAttribute('aria-label', (show ? 'Hide ' : 'Show ') + 'password');
+  });
+});
+</script>
+{% endif %}
+{% endblock %}
