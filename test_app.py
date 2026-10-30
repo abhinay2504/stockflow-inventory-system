@@ -55,5 +55,4 @@ class Tests(unittest.TestCase):
   r=self.c.post('/settings',data={'_csrf':self.token(),'organization_name':'!!!','default_threshold':'5'},follow_redirects=True)
   self.assertIn(b'letter or number',r.data.lower())
   with closing(module.connect_db()) as d:self.assertEqual(d.execute('select name from organizations').fetchone()['name'],'Good Store')
-
 if __name__=='__main__':unittest.main(verbosity=2)
