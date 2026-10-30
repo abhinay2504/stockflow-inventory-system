@@ -6,12 +6,15 @@ from decimal import Decimal,InvalidOperation
 from flask import Flask,g,request,session,redirect,url_for,render_template,flash,abort
 from werkzeug.security import generate_password_hash,check_password_hash
 ROOT=os.path.dirname(os.path.abspath(__file__)); DEFAULT_DB_DIR='/tmp' if os.environ.get('VERCEL') else ROOT; DB_PATH=os.environ.get('STOCKFLOW_DB',os.path.join(DEFAULT_DB_DIR,'stockflow.db'))
+
 app = Flask(__name__)
+
 secret_key = os.environ.get("SECRET_KEY")
 if not secret_key:
     raise RuntimeError(
         "SECRET_KEY must be configured before starting StockFlow."
     )
+
 app.config.update(
     SECRET_KEY=secret_key,
     SESSION_COOKIE_HTTPONLY=True,
@@ -19,11 +22,12 @@ app.config.update(
     SESSION_COOKIE_SECURE=os.environ.get("COOKIE_SECURE", "0") == "1",
     MAX_CONTENT_LENGTH=1048576,
 )
+
 def connect_db():
  d=sqlite3.connect(DB_PATH);d.row_factory=sqlite3.Row;d.execute('PRAGMA foreign_keys=ON');return d
 def init_db():
  with closing(connect_db()) as d:
-  with d:d.executescript()
+  with d:d.executescript('''CREATE TABLE IF NOT EXISTS organizations(id INTEGER PRIMARY KEY,name TEXT NOT NULL CHECK(length(name) BETWEEN 1 AND 80),default_threshold INTEGER NOT NULL DEFAULT 5 CHECK(default_threshold>=0),created_at TEXT NOT NULL);CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY,organization_id INTEGER NOT NULL UNIQUE REFERENCES organizations(id) ON DELETE CASCADE,email TEXT NOT NULL UNIQUE COLLATE NOCASE,password_hash TEXT NOT NULL,created_at TEXT NOT NULL);CREATE TABLE IF NOT EXISTS products(id INTEGER PRIMARY KEY,organization_id INTEGER NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,name TEXT NOT NULL CHECK(length(name) BETWEEN 1 AND 120),sku TEXT NOT NULL CHECK(length(sku) BETWEEN 1 AND 64),description TEXT NOT NULL DEFAULT '',quantity INTEGER NOT NULL DEFAULT 0 CHECK(quantity>=0),cost_price TEXT,selling_price TEXT,low_stock_threshold INTEGER CHECK(low_stock_threshold IS NULL OR low_stock_threshold>=0),created_at TEXT NOT NULL,updated_at TEXT NOT NULL,UNIQUE(organization_id,sku COLLATE NOCASE));CREATE INDEX IF NOT EXISTS idx_products_org ON products(organization_id);''')
 def now():return datetime.now(timezone.utc).isoformat(timespec='seconds')
 def organization_name_error(name):
  if not name or len(name) < 2 or len(name) > 80:
@@ -33,6 +37,7 @@ def organization_name_error(name):
  if not any(ch.isalnum() for ch in name):
   return 'Organization name must contain at least one letter or number.'
  return None
+
 def password_error(password):
  if len(password) < 8 or len(password) > 128:
   return 'Password must be between 8 and 128 characters.'
